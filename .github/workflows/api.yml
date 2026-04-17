@@ -67,5 +67,5 @@ jobs:
       - name: Alembic upgrade
         run: alembic upgrade head
 
-      - name: Integration (sem gspread)
-        run: pytest tests/integration -q --maxfail=1 -k 'not paridade'
+      - name: Integration (skip paridade via skipif)
+        run: pytest tests/integration -q --maxfail=1
