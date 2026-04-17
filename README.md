@@ -15,6 +15,8 @@ dashboard-fg/
 ├── projeto-web/      # Frontend React 18 + Vite + TS + TanStack Query + Tailwind
 ├── docker-compose.yml
 ├── .vscode/          # launch.json + tasks.json + settings.json
+├── .github/          # Workflows CI (api + web)
+├── infra/            # setup-gcp.sh, setup-gcp-free.sh, scheduler.sh
 └── .claude/          # Convenções e skills do projeto para Claude Code
 ```
 
@@ -26,11 +28,11 @@ docker compose up -d postgres
 
 # 2. Backend
 cd projeto-api
-uv sync
+pip install -e '.[dev]'
 cp .env.example .env   # preencher DATAJURI_TOKEN, OAUTH_* etc
-uv run alembic upgrade head
-uv run python scripts/seed_from_apps_script.py   # popular grupos, pontuações, feriados
-uv run uvicorn app.main:app --reload --port 8080
+alembic upgrade head
+python scripts/seed_from_apps_script.py   # popular grupos, pontuações, feriados
+uvicorn app.main:app --reload --port 8080
 
 # 3. Frontend
 cd ../projeto-web
@@ -42,33 +44,75 @@ npm run dev   # http://localhost:5173
 
 ```bash
 cd projeto-api
-uv run python -m app.etl                # pipeline completo
-uv run python -m app.etl --incremental  # só últimos N dias
-uv run python -m app.etl --dry-run      # sem gravar
+python -m app.etl                # pipeline completo
+python -m app.etl --incremental  # só últimos N dias
+python -m app.etl --dry-run      # sem gravar
 ```
 
 ## Testes
 
 ```bash
 cd projeto-api
-uv run pytest              # unit + integration
-uv run pytest tests/unit   # só unitários (sem banco)
+pytest              # unit + integration
+pytest tests/unit   # só unitários (sem banco)
 ```
 
-## Deploy (Cloud Run)
+## Deploy — duas rotas
+
+### Rota A — 100% GCP com Cloud SQL (~R$80–100/mês)
+
+Usa `infra/setup-gcp.sh` + `projeto-api/cloudbuild.yaml` + `projeto-api/cloudbuild.etl.yaml`.
+Cloud SQL `db-f1-micro` (Postgres 15 HA off) + backup automático.
 
 ```bash
-# Backend
-cd projeto-api && gcloud run deploy dashboard-fg-api --source . --region southamerica-east1
-
-# Frontend
-cd projeto-web && gcloud run deploy dashboard-fg-web --source . --region southamerica-east1
-
-# ETL Job
-cd projeto-api && gcloud run jobs deploy dashboard-fg-etl \
-  --source . --region southamerica-east1 \
-  --command=python --args="-m,app.etl"
+PROJECT_ID=<seu-projeto> bash infra/setup-gcp.sh
+gcloud builds submit --config projeto-api/cloudbuild.yaml projeto-api/ \
+  --substitutions=_CLOUDSQL_INSTANCE=$PROJECT_ID:southamerica-east1:dashboard-fg
+gcloud builds submit --config projeto-api/cloudbuild.etl.yaml projeto-api/ \
+  --substitutions=_CLOUDSQL_INSTANCE=$PROJECT_ID:southamerica-east1:dashboard-fg
+gcloud builds submit --config projeto-web/cloudbuild.yaml projeto-web/
+PROJECT_ID=<seu-projeto> bash infra/scheduler.sh
 ```
+
+### Rota B — **Free tier total** (Supabase + Cloud Run)
+
+Substitui o Cloud SQL por Supabase Postgres (500 MB free, managed, permanente).
+Custo: **R$0/mês** para piloto.
+
+1. Criar projeto em [supabase.com](https://supabase.com) (Free tier).
+2. Em `Settings → Database → Connection pooling`, copiar o pooler URL (port 6543).
+3. Em `Settings → Database → Connection string`, copiar o URL direto (port 5432).
+4. Rodar:
+
+```bash
+PROJECT_ID=<seu-projeto> \
+SUPABASE_DB_URL='postgresql://postgres:SENHA@db.xxx.supabase.co:5432/postgres' \
+SUPABASE_DB_URL_POOL='postgresql://postgres:SENHA@pooler.xxx.supabase.co:6543/postgres' \
+bash infra/setup-gcp-free.sh
+
+# Adicionar manualmente os secrets OAuth e DataJuri no Secret Manager
+gcloud builds submit --config projeto-api/cloudbuild.free.yaml projeto-api/
+gcloud builds submit --config projeto-api/cloudbuild.etl.free.yaml projeto-api/
+gcloud builds submit --config projeto-web/cloudbuild.yaml projeto-web/ \
+  --substitutions=_API_URL=https://dashboard-fg-api-XXX.run.app
+PROJECT_ID=<seu-projeto> bash infra/scheduler.sh
+```
+
+**Contrapartidas do free tier Supabase:**
+
+- Projeto pausa após **7 dias sem conexão** — o Cloud Scheduler ETL a cada 2h mantém ativo.
+- Limite de **500 MB**. Nossos dados agregados (~50k atividades × ~2KB) ≈ 100 MB. Folga ampla.
+- Latência um pouco maior que Cloud SQL regional (Supabase é multi-region).
+- Máximo **60 conexões simultâneas**. Usamos o pooler (PgBouncer) — suficiente para o tráfego interno.
+
+**Quando considerar migrar para Cloud SQL:**
+
+- Dados > 400 MB.
+- Latência p95 > 200ms começa a incomodar.
+- Precisa de HA / backup PITR granular.
+- Quer integrar com outras apps GCP sem NAT externo.
+
+Migração Supabase → Cloud SQL: `pg_dump | pg_restore`, swap secret no Secret Manager, novo deploy. Sem mudança de código.
 
 ## Convenções
 
@@ -82,10 +126,6 @@ Veja `.claude/CLAUDE.md`. Resumo:
 
 ## Autorizações pendentes
 
-Antes de sair do ambiente local:
-
-- [ ] Criar Cloud SQL instance `db-f1-micro` em `southamerica-east1`.
-- [ ] Criar Artifact Registry e habilitar Cloud Build.
+- [ ] Criar projeto Supabase (rota B) **ou** Cloud SQL instance (rota A).
 - [ ] Configurar OAuth Consent Screen + Client ID (domínio `furtadoguerini.com.br`).
-- [ ] Cloud Scheduler jobs (6h diário + 2h incremental).
 - [ ] Cutover DNS (`dashboard.furtadoguerini.com.br`) — só após validação do time.
