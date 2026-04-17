@@ -1,0 +1,16 @@
+---
+description: Convenções para código do backend Python/FastAPI (projeto-api/)
+globs: projeto-api/**/*.py
+alwaysApply: false
+---
+
+# Backend — projeto-api/
+
+- Python 3.11+ com tipagem estrita (pyright strict).
+- FastAPI + Pydantic v2 + SQLAlchemy 2.0 (async) + Alembic.
+- httpx async para DataJuri; retry exponencial com `tenacity`.
+- Ruff para lint + format (substitui black/isort).
+- Testes em `tests/` (pytest). Unitário não bate no banco; integração usa docker-compose Postgres.
+- **Nunca** SQL cru fora de `app/services/` ou `app/etl/`; rotas só tocam services.
+- Docstrings curtas em PT. Sem comentários óbvios.
+- Paridade com Apps Script é **obrigatória** — qualquer divergência é bug até prova em contrário.

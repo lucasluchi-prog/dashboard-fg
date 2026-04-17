@@ -1,0 +1,68 @@
+name: api
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "projeto-api/**"
+      - ".github/workflows/api.yml"
+  pull_request:
+    paths:
+      - "projeto-api/**"
+      - ".github/workflows/api.yml"
+
+defaults:
+  run:
+    working-directory: projeto-api
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: dashboard
+          POSTGRES_PASSWORD: dashboard
+          POSTGRES_DB: dashboard_fg
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql+asyncpg://dashboard:dashboard@localhost:5432/dashboard_fg
+      DATABASE_URL_SYNC: postgresql+psycopg2://dashboard:dashboard@localhost:5432/dashboard_fg
+      SESSION_SECRET: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      ENV: dev
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install deps
+        run: |
+          pip install -U pip
+          pip install -e '.[dev]'
+
+      - name: Ruff lint
+        run: ruff check .
+
+      - name: Ruff format check
+        run: ruff format --check .
+
+      - name: Pyright typecheck
+        run: pyright
+
+      - name: Unit tests
+        run: pytest tests/unit -q --maxfail=1
+
+      - name: Alembic upgrade
+        run: alembic upgrade head
+
+      - name: Integration (sem gspread)
+        run: pytest tests/integration -q --maxfail=1 -k 'not paridade'

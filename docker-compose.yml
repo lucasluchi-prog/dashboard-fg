@@ -1,0 +1,54 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: dashboard-fg-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: dashboard
+      POSTGRES_PASSWORD: dashboard
+      POSTGRES_DB: dashboard_fg
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./projeto-api/scripts/init-db.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dashboard -d dashboard_fg"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./projeto-api
+      dockerfile: Dockerfile
+    container_name: dashboard-fg-api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+asyncpg://dashboard:dashboard@postgres:5432/dashboard_fg
+      ENV: dev
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - full
+
+  web:
+    build:
+      context: ./projeto-web
+      dockerfile: Dockerfile
+    container_name: dashboard-fg-web
+    restart: unless-stopped
+    environment:
+      API_BASE: http://api:8080
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+    profiles:
+      - full
+
+volumes:
+  postgres-data:

@@ -1,0 +1,124 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "run-api",
+      "type": "shell",
+      "command": "uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8080",
+      "options": { "cwd": "${workspaceFolder:projeto-api}" },
+      "presentation": { "panel": "dedicated", "reveal": "always" },
+      "problemMatcher": []
+    },
+    {
+      "label": "vite-dev",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": { "cwd": "${workspaceFolder:projeto-web}" },
+      "isBackground": true,
+      "presentation": { "panel": "dedicated", "reveal": "always" },
+      "problemMatcher": [
+        {
+          "pattern": [{ "regexp": "." }],
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": "VITE v",
+            "endsPattern": "ready in"
+          }
+        }
+      ]
+    },
+    {
+      "label": "run-web",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": { "cwd": "${workspaceFolder:projeto-web}" },
+      "presentation": { "panel": "dedicated", "reveal": "always" },
+      "problemMatcher": []
+    },
+    {
+      "label": "test-api",
+      "type": "shell",
+      "command": "uv run pytest -vv",
+      "options": { "cwd": "${workspaceFolder:projeto-api}" },
+      "group": { "kind": "test", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "lint-api",
+      "type": "shell",
+      "command": "uv run ruff check . && uv run ruff format --check .",
+      "options": { "cwd": "${workspaceFolder:projeto-api}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "lint-web",
+      "type": "shell",
+      "command": "npm run lint",
+      "options": { "cwd": "${workspaceFolder:projeto-web}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "db-migrate",
+      "type": "shell",
+      "command": "uv run alembic revision --autogenerate -m \"${input:migrationMessage}\"",
+      "options": { "cwd": "${workspaceFolder:projeto-api}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "db-upgrade",
+      "type": "shell",
+      "command": "uv run alembic upgrade head",
+      "options": { "cwd": "${workspaceFolder:projeto-api}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "db-downgrade",
+      "type": "shell",
+      "command": "uv run alembic downgrade -1",
+      "options": { "cwd": "${workspaceFolder:projeto-api}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "etl-local",
+      "type": "shell",
+      "command": "uv run python -m app.etl",
+      "options": { "cwd": "${workspaceFolder:projeto-api}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "db-up",
+      "type": "shell",
+      "command": "docker compose up -d postgres",
+      "options": { "cwd": "${workspaceFolder:dashboard-fg}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "db-down",
+      "type": "shell",
+      "command": "docker compose down",
+      "options": { "cwd": "${workspaceFolder:dashboard-fg}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "deploy-api",
+      "type": "shell",
+      "command": "gcloud run deploy dashboard-fg-api --source . --region southamerica-east1 --allow-unauthenticated=false",
+      "options": { "cwd": "${workspaceFolder:projeto-api}" },
+      "problemMatcher": []
+    },
+    {
+      "label": "deploy-web",
+      "type": "shell",
+      "command": "gcloud run deploy dashboard-fg-web --source . --region southamerica-east1 --allow-unauthenticated=false",
+      "options": { "cwd": "${workspaceFolder:projeto-web}" },
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "migrationMessage",
+      "type": "promptString",
+      "description": "Descricao curta da migracao (ex: add_tabela_assunto)"
+    }
+  ]
+}

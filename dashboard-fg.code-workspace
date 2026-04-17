@@ -1,0 +1,22 @@
+{
+  "folders": [
+    { "name": "dashboard-fg", "path": "." },
+    { "name": "projeto-api", "path": "projeto-api" },
+    { "name": "projeto-web", "path": "projeto-web" }
+  ],
+  "settings": {
+    "terminal.integrated.cwd": "${workspaceFolder:dashboard-fg}"
+  },
+  "extensions": {
+    "recommendations": [
+      "ms-python.python",
+      "ms-python.vscode-pylance",
+      "charliermarsh.ruff",
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+      "bradlc.vscode-tailwindcss",
+      "ms-azuretools.vscode-docker",
+      "anthropic.claude-code"
+    ]
+  }
+}

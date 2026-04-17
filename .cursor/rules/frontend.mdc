@@ -1,0 +1,17 @@
+---
+description: Convenções para código do frontend React/TS (projeto-web/)
+globs: projeto-web/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Frontend — projeto-web/
+
+- TypeScript strict.
+- React 18 + Vite + TanStack Query + Tailwind + Recharts.
+- Componentes em PascalCase, arquivos `.tsx`. Hooks em camelCase com prefixo `use`.
+- **Sem Redux** — TanStack Query cuida de estado servidor; `useState`/`useReducer` para UI local.
+- **Sem CSS solto** — só Tailwind + variants (`cva`).
+- Tipos da API em `src/api/types.ts` gerados via `openapi-typescript` (não editar à mão).
+- Cliente HTTP em `src/api/client.ts` (axios/fetch com `credentials: 'include'`).
+- Formatters BR em `src/lib/formatters.ts` (data, moeda, percentual).
+- Paleta FG: navy (`#0f1e3e`) + mustard (`#c8a84b`). Configurada em `tailwind.config.js`.

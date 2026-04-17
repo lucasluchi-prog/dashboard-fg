@@ -1,0 +1,60 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "FastAPI (debug)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": [
+        "app.main:app",
+        "--reload",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8080"
+      ],
+      "cwd": "${workspaceFolder:projeto-api}",
+      "justMyCode": false,
+      "envFile": "${workspaceFolder:projeto-api}/.env",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Vite (debug Chrome)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder:projeto-web}/src",
+      "preLaunchTask": "vite-dev",
+      "sourceMaps": true
+    },
+    {
+      "name": "ETL local",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "app.etl",
+      "cwd": "${workspaceFolder:projeto-api}",
+      "envFile": "${workspaceFolder:projeto-api}/.env",
+      "justMyCode": false,
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Pytest (debug)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["-vv", "-s", "${file}"],
+      "cwd": "${workspaceFolder:projeto-api}",
+      "envFile": "${workspaceFolder:projeto-api}/.env",
+      "justMyCode": false,
+      "console": "integratedTerminal"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Full stack",
+      "configurations": ["FastAPI (debug)", "Vite (debug Chrome)"],
+      "stopAll": true
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+# Cloud Build para dashboard-fg-web:
+#   gcloud builds submit --config projeto-web/cloudbuild.yaml projeto-web/ \
+#     --substitutions=_REGION=southamerica-east1,_API_URL=https://dashboard-fg-api-xxx.run.app
+
+substitutions:
+  _REGION: southamerica-east1
+  _SERVICE: dashboard-fg-web
+  _API_URL: ""
+
+steps:
+  - id: build
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --build-arg
+      - API_BASE=${_API_URL}
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/dashboard-fg/web:$SHORT_SHA
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/dashboard-fg/web:latest
+      - .
+
+  - id: push
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - --all-tags
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/dashboard-fg/web
+
+  - id: deploy
+    name: gcr.io/cloud-builders/gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE}
+      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/dashboard-fg/web:$SHORT_SHA
+      - --region=${_REGION}
+      - --platform=managed
+      - --allow-unauthenticated=false
+      - --set-env-vars=API_BASE=${_API_URL}
+      - --min-instances=0
+      - --max-instances=3
+      - --cpu=1
+      - --memory=256Mi
+
+images:
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/dashboard-fg/web
+
+options:
+  logging: CLOUD_LOGGING_ONLY

@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-fg-cream text-fg-navy antialiased;
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition;
+  }
+  .btn-primary {
+    @apply bg-fg-navy text-white hover:bg-fg-navy-dark;
+  }
+  .btn-secondary {
+    @apply border border-fg-navy/20 text-fg-navy hover:bg-white;
+  }
+  .card {
+    @apply rounded-lg border border-fg-navy/10 bg-white shadow-sm;
+  }
+}
