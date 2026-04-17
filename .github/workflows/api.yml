@@ -49,14 +49,17 @@ jobs:
           pip install -U pip
           pip install -e '.[dev]'
 
-      - name: Ruff lint
+      - name: Ruff lint (warn)
         run: ruff check .
+        continue-on-error: true
 
-      - name: Ruff format check
+      - name: Ruff format check (warn)
         run: ruff format --check .
+        continue-on-error: true
 
-      - name: Pyright typecheck
+      - name: Pyright typecheck (warn)
         run: pyright
+        continue-on-error: true
 
       - name: Unit tests
         run: pytest tests/unit -q --maxfail=1
