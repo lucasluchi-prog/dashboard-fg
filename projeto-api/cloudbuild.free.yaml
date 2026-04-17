@@ -25,16 +25,18 @@ steps:
       - ${_REGION}-docker.pkg.dev/$PROJECT_ID/dashboard-fg/api
 
   - id: migrate
-    name: gcr.io/cloud-builders/docker
+    name: python:3.11-slim
     entrypoint: bash
     args:
       - -c
       - |
-        docker run --rm \
-          -e DATABASE_URL_SYNC="$$DATABASE_URL_SYNC" \
-          ${_REGION}-docker.pkg.dev/$PROJECT_ID/dashboard-fg/api:$SHORT_SHA \
-          alembic upgrade head
+        set -e
+        apt-get update -qq && apt-get install -qq -y libpq-dev gcc >/dev/null
+        pip install --quiet -U pip
+        pip install --quiet -e .
+        alembic upgrade head
     secretEnv: ["DATABASE_URL_SYNC"]
+    env: ["ENV=prod"]
 
   - id: deploy
     name: gcr.io/cloud-builders/gcloud

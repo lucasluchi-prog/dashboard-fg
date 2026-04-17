@@ -22,15 +22,29 @@ _session_factory: async_sessionmaker[AsyncSession] | None = None
 
 
 def get_engine() -> AsyncEngine:
+    """Cria async engine com quirks do PgBouncer transaction mode (Supabase pooler).
+
+    - `statement_cache_size=0`: obrigatório para asyncpg atrás do PgBouncer em transaction mode,
+      senão prepared statements geram `prepared statement "__asyncpg_stmt_X__" already exists`.
+    - `server_settings={"jit": "off"}`: evita comportamento inconsistente de plan caching.
+    """
     global _engine
     if _engine is None:
         settings = get_settings()
+        connect_args: dict[str, object] = {}
+        if "asyncpg" in settings.database_url:
+            connect_args = {
+                "statement_cache_size": 0,
+                "prepared_statement_cache_size": 0,
+                "server_settings": {"jit": "off"},
+            }
         _engine = create_async_engine(
             settings.database_url,
             echo=settings.env == "dev",
             pool_pre_ping=True,
             pool_size=5,
             max_overflow=10,
+            connect_args=connect_args,
         )
     return _engine
 
