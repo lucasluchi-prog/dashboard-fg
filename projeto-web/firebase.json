@@ -1,0 +1,36 @@
+{
+  "hosting": {
+    "public": "dist",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      {
+        "source": "/api/**",
+        "run": { "serviceId": "dashboard-fg-api", "region": "southamerica-east1" }
+      },
+      {
+        "source": "/login",
+        "run": { "serviceId": "dashboard-fg-api", "region": "southamerica-east1" }
+      },
+      {
+        "source": "/logout",
+        "run": { "serviceId": "dashboard-fg-api", "region": "southamerica-east1" }
+      },
+      {
+        "source": "/auth/**",
+        "run": { "serviceId": "dashboard-fg-api", "region": "southamerica-east1" }
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**/*.@(js|css|woff2)",
+        "headers": [
+          { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        ]
+      }
+    ]
+  }
+}

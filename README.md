@@ -57,7 +57,7 @@ pytest              # unit + integration
 pytest tests/unit   # só unitários (sem banco)
 ```
 
-## Deploy — duas rotas
+## Deploy — três rotas
 
 ### Rota A — 100% GCP com Cloud SQL (~R$80–100/mês)
 
@@ -113,6 +113,38 @@ PROJECT_ID=<seu-projeto> bash infra/scheduler.sh
 - Quer integrar com outras apps GCP sem NAT externo.
 
 Migração Supabase → Cloud SQL: `pg_dump | pg_restore`, swap secret no Secret Manager, novo deploy. Sem mudança de código.
+
+### Rota C — **Firebase Hosting + Cloud Run API + Supabase** (recomendada)
+
+Otimização da rota B: troca o Cloud Run Web pelo **Firebase Hosting** (CDN global, SSL automático, custom domain incluído, sem cold start).
+
+Vantagens:
+- Custom domain em 1 clique (`dashboard.furtadoguerini.com.br`).
+- Deploy do frontend em ~15s via `firebase deploy`.
+- Mesmo projeto GCP usado pelo OAuth e Cloud Run, auth integrada.
+- Free tier: 10 GB storage + 360 MB/dia transfer.
+
+```bash
+# 1. Banco + API igual à rota B
+PROJECT_ID=<seu-projeto> \
+SUPABASE_DB_URL='...' SUPABASE_DB_URL_POOL='...' \
+bash infra/setup-gcp-free.sh
+gcloud builds submit --config projeto-api/cloudbuild.free.yaml projeto-api/
+gcloud builds submit --config projeto-api/cloudbuild.etl.free.yaml projeto-api/
+
+# 2. Frontend via Firebase Hosting
+npm install -g firebase-tools
+firebase login
+sed -i "s/SUBSTITUIR_PELO_PROJECT_ID/$PROJECT_ID/g" .firebaserc
+PROJECT_ID=<seu-projeto> bash infra/deploy-firebase-hosting.sh
+
+# 3. Scheduler
+PROJECT_ID=<seu-projeto> bash infra/scheduler.sh
+```
+
+O arquivo [projeto-web/firebase.json](projeto-web/firebase.json) já tem os `rewrites` que apontam `/api/**`, `/login`, `/logout`, `/auth/**` para o Cloud Run `dashboard-fg-api`. Vite + SPA fallback estão configurados.
+
+**Custom domain:** `Firebase Console → Hosting → Add custom domain` → `dashboard.furtadoguerini.com.br`. Firebase gera TXT + A/AAAA records, você configura no registrar. SSL em ~24h.
 
 ## Convenções
 
