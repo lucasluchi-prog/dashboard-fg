@@ -34,14 +34,18 @@ class DataJuriClient:
     def __init__(
         self,
         base_url: str | None = None,
-        user: str | None = None,
+        client_id: str | None = None,
+        secret: str | None = None,
+        username: str | None = None,
         password: str | None = None,
         tenant: str | None = None,
         page_size: int | None = None,
     ) -> None:
         s = get_settings()
         self.base_url = (base_url or s.datajuri_base_url).rstrip("/")
-        self.user = user or s.datajuri_user
+        self.client_id = client_id or s.datajuri_client_id
+        self.secret = secret or s.datajuri_secret
+        self.username = username or s.datajuri_username
         self.password = password or s.datajuri_password
         self.tenant = tenant or s.datajuri_tenant
         self.page_size = page_size or s.datajuri_page_size
@@ -58,14 +62,19 @@ class DataJuriClient:
     async def _get_token(self) -> str:
         if self._token:
             return self._token
-        # Basic Auth "user:password" (separador ":" — manual interno)
-        creds = f"{self.user}:{self.password}".encode()
+        # Basic Auth "client_id:secret" + grant_type=password (username/password)
+        # Paridade com scripts/discovery.py do MCP DataJuri local.
+        creds = f"{self.client_id}:{self.secret}".encode()
         auth = base64.b64encode(creds).decode()
         url = f"{self.base_url}{self.token_endpoint}"
         resp = await self._client.post(
             url,
             headers={"Authorization": f"Basic {auth}"},
-            data={"grant_type": "client_credentials", "tenant": self.tenant},
+            data={
+                "grant_type": "password",
+                "username": self.username,
+                "password": self.password,
+            },
         )
         if resp.status_code != 200:
             raise DataJuriError(f"Falha ao obter token: {resp.status_code} {resp.text[:200]}")

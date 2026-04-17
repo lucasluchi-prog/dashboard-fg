@@ -13,7 +13,7 @@ steps:
       - -f
       - Dockerfile.etl
       - -t
-      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/dashboard-fg/etl:$SHORT_SHA
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/dashboard-fg/etl:$BUILD_ID
       - -t
       - ${_REGION}-docker.pkg.dev/$PROJECT_ID/dashboard-fg/etl:latest
       - .
@@ -32,14 +32,14 @@ steps:
       - jobs
       - deploy
       - ${_JOB}
-      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/dashboard-fg/etl:$SHORT_SHA
+      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/dashboard-fg/etl:$BUILD_ID
       - --region=${_REGION}
       - --task-timeout=1800
       - --memory=1Gi
       - --cpu=2
       - --max-retries=1
       - --set-env-vars=ENV=prod
-      - --set-secrets=DATABASE_URL=dashboard-fg-db-url:latest,DATABASE_URL_SYNC=dashboard-fg-db-url-sync:latest,DATAJURI_USER=dashboard-fg-datajuri-user:latest,DATAJURI_PASSWORD=dashboard-fg-datajuri-password:latest
+      - --set-secrets=DATABASE_URL=dashboard-fg-db-url:latest,DATABASE_URL_SYNC=dashboard-fg-db-url-sync:latest,DATAJURI_CLIENT_ID=dashboard-fg-datajuri-client-id:latest,DATAJURI_SECRET=dashboard-fg-datajuri-secret:latest,DATAJURI_USERNAME=dashboard-fg-datajuri-username:latest,DATAJURI_PASSWORD=dashboard-fg-datajuri-password:latest
 
 images:
   - ${_REGION}-docker.pkg.dev/$PROJECT_ID/dashboard-fg/etl

@@ -69,3 +69,5 @@ coverage/
 
 # ===== Claude Code =====
 .claude/memory/*.local.md
+projeto-web/.firebase/
+!projeto-web/.env.production

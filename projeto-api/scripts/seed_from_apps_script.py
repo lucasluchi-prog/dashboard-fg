@@ -274,15 +274,10 @@ async def seed() -> None:
         await db.commit()
         logger.info("Pontuações semeadas")
 
-        # assuntos excluidos (global)
-        for assunto in ASSUNTOS_EXCLUIDOS:
-            stmt = (
-                pg_insert(AssuntoExcluido)
-                .values(grupo_id=None, assunto_norm=normalize(assunto), motivo="seed global")
-                .on_conflict_do_nothing()
-            )
-            await db.execute(stmt)
-        await db.commit()
+        # Blacklist global (ASSUNTOS_EXCLUIDOS) fica hardcoded em app/services/normalize.py
+        # — é usada via is_assunto_excluido() em todos os services. A tabela
+        # `assunto_excluido` é só para blacklists POR GRUPO (com grupo_id definido).
+        logger.info("Skip seed global — is_assunto_excluido() usa lista hardcoded")
 
         # feriados
         for _, itens in FERIADOS.items():

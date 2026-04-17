@@ -12,7 +12,7 @@ steps:
     args:
       - build
       - -t
-      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/dashboard-fg/api:$SHORT_SHA
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/dashboard-fg/api:$BUILD_ID
       - -t
       - ${_REGION}-docker.pkg.dev/$PROJECT_ID/dashboard-fg/api:latest
       - .
@@ -44,16 +44,16 @@ steps:
       - run
       - deploy
       - ${_SERVICE}
-      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/dashboard-fg/api:$SHORT_SHA
+      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/dashboard-fg/api:$BUILD_ID
       - --region=${_REGION}
       - --platform=managed
-      - --allow-unauthenticated=false
+      - --allow-unauthenticated
       - --min-instances=0
       - --max-instances=2
       - --cpu=1
       - --memory=512Mi
-      - --set-env-vars=ENV=prod,ALLOWED_DOMAIN=furtadoguerini.com.br
-      - --set-secrets=DATABASE_URL=dashboard-fg-db-url:latest,DATABASE_URL_SYNC=dashboard-fg-db-url-sync:latest,DATAJURI_USER=dashboard-fg-datajuri-user:latest,DATAJURI_PASSWORD=dashboard-fg-datajuri-password:latest,OAUTH_CLIENT_ID=dashboard-fg-oauth-client:latest,OAUTH_CLIENT_SECRET=dashboard-fg-oauth-secret:latest,SESSION_SECRET=dashboard-fg-session:latest
+      - --set-env-vars=ENV=prod,ALLOWED_DOMAIN=furtadoguerini.com.br,CORS_ORIGINS=https://vocal-mountain-492622-u7.web.app,OAUTH_REDIRECT_URI=https://dashboard-fg-api-w4opjq47xa-rj.a.run.app/auth/callback
+      - --set-secrets=DATABASE_URL=dashboard-fg-db-url:latest,DATABASE_URL_SYNC=dashboard-fg-db-url-sync:latest,DATAJURI_CLIENT_ID=dashboard-fg-datajuri-client-id:latest,DATAJURI_SECRET=dashboard-fg-datajuri-secret:latest,DATAJURI_USERNAME=dashboard-fg-datajuri-username:latest,DATAJURI_PASSWORD=dashboard-fg-datajuri-password:latest,OAUTH_CLIENT_ID=dashboard-fg-oauth-client:latest,OAUTH_CLIENT_SECRET=dashboard-fg-oauth-secret:latest,SESSION_SECRET=dashboard-fg-session:latest
 
 availableSecrets:
   secretManager:

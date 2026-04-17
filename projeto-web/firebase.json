@@ -3,26 +3,7 @@
     "public": "dist",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
-      {
-        "source": "/api/**",
-        "run": { "serviceId": "dashboard-fg-api", "region": "southamerica-east1" }
-      },
-      {
-        "source": "/login",
-        "run": { "serviceId": "dashboard-fg-api", "region": "southamerica-east1" }
-      },
-      {
-        "source": "/logout",
-        "run": { "serviceId": "dashboard-fg-api", "region": "southamerica-east1" }
-      },
-      {
-        "source": "/auth/**",
-        "run": { "serviceId": "dashboard-fg-api", "region": "southamerica-east1" }
-      },
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
+      { "source": "**", "destination": "/index.html" }
     ],
     "headers": [
       {

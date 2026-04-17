@@ -33,7 +33,9 @@ class Settings(BaseSettings):
 
     datajuri_base_url: str = "https://api.datajuri.com.br"
     datajuri_tenant: str = "furtadoguerini"
-    datajuri_user: str = ""
+    datajuri_client_id: str = ""
+    datajuri_secret: str = ""
+    datajuri_username: str = ""
     datajuri_password: str = ""
     datajuri_token_endpoint: str = "/oauth/token"
     datajuri_page_size: int = 1000

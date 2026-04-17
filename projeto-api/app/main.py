@@ -31,11 +31,13 @@ def create_app() -> FastAPI:
         description="Backend do Dashboard de Produtividade — Furtado Guerini Advocacia",
     )
 
+    # same_site="none" obrigatório para cross-origin cookie (frontend .web.app ↔ API .run.app).
+    # Em dev, "lax" já basta (mesmo domínio).
     app.add_middleware(
         SessionMiddleware,
         secret_key=settings.session_secret,
         https_only=settings.is_prod,
-        same_site="lax",
+        same_site="none" if settings.is_prod else "lax",
     )
     app.add_middleware(
         CORSMiddleware,

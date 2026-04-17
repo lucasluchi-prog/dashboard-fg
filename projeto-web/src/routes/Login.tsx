@@ -7,7 +7,10 @@ export default function Login() {
           Acesso restrito ao domínio{" "}
           <span className="font-medium">@furtadoguerini.com.br</span>.
         </p>
-        <a href="/login" className="btn btn-primary mt-6 w-full">
+        <a
+          href={`${import.meta.env.VITE_API_BASE || ""}/login`}
+          className="btn btn-primary mt-6 w-full"
+        >
           Entrar com Google
         </a>
       </div>
